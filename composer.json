@@ -13,7 +13,8 @@
   "require": {
     "silverstripe/framework": ">=3.1",
     "silverstripe/cms": ">=3.1",
-    "bramdeleeuw/silverstripe-event-tickets": "*"
+    "bramdeleeuw/silverstripe-event-tickets": "*",
+    "silverstripe/tagfield": "*"
   },
   "extra": {
     "installer-name": "event-tickets_discounts"
