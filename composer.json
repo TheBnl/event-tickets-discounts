@@ -1,6 +1,6 @@
 {
   "name": "bramdeleeuw/silverstripe-event-tickets-discounts",
-  "description": "Event tickets for SilverStripe Event Calendar",
+  "description": "Discount module for SilverStripe Event Tickets",
   "type": "silverstripe-module",
   "keywords": ["silverstripe", "ticket", "omnipay", "event", "discount"],
   "license": "BSD-3-Clause",
