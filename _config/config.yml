@@ -1,0 +1,10 @@
+---
+Name: event-tickets-discounts
+After: 'event-tickets/*'
+---
+CalendarEvent_Controller:
+  extensions:
+    - 'Broarm\EventTickets\DiscountStep'
+Broarm\EventTickets\Reservation:
+  extensions:
+    - 'Broarm\EventTickets\DiscountExtension'

@@ -1,0 +1,8 @@
+nl:
+  CheckoutSteps:
+    discount: Kortingscode
+  Discount:
+    DISCOUNT: Korting
+  DiscountForm:
+    COUPON_CODE: Kortingscode
+    CONTINUE: Ga verder
