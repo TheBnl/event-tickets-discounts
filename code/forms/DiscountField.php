@@ -34,7 +34,7 @@ class DiscountField extends TextField
                 return false;
             }
 
-            /*/ Check if the discount is already used
+            // Check if the discount is already used
             if ($discount->Used) {
                 $validator->validationError($this->name, _t(
                     'DiscountField.VALIDATION_USED_CHECK',
@@ -42,7 +42,7 @@ class DiscountField extends TextField
                 ), 'validation');
 
                 return false;
-            }*/
+            }
 
             /** @var DiscountForm $form */
             $form = $this->form;
