@@ -98,11 +98,6 @@ class DiscountField extends TextField
                 $form->getReservation()->PriceModifiers()->add($discount);
                 $form->getReservation()->calculateTotal();
                 $form->getReservation()->write();
-                
-                //echo "<pre>";
-                //print_r($form->getReservation()->Total);
-                //echo "</pre>";
-                //exit();
                 return true;
             }
 

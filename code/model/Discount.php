@@ -124,26 +124,6 @@ class Discount extends PriceModifier
     }
 
     /**
-     * Return a table value
-     *
-     * @return string
-     */
-    public function getTableValue()
-    {
-        switch ($this->DiscountType) {
-            case self::PERCENTAGE:
-                return "% $this->Amount";
-                break;
-            default:
-            case self::PRICE:
-                $currency = new Currency();
-                $currency->setValue($this->Amount);
-                return $currency->NiceDecimalPoint();
-                break;
-        }
-    }
-
-    /**
      * Calculate the discount
      *
      * @param $total
@@ -152,15 +132,20 @@ class Discount extends PriceModifier
     {
         switch ($this->DiscountType) {
             case self::PERCENTAGE:
-                $total = $total - ($total / 100 * $this->Amount);
+                $discount = ($total / 100 * $this->Amount);
+                $total -= $discount;
                 break;
             default:
             case self::PRICE:
-            // never go below zero
-            $discount = $total - $this->Amount;
-            $total = $discount > 0 ? $discount : 0;
+                // never go below zero
+                $discount = $this->Amount;
+                $total -= $discount;
+                $total = $total > 0 ? $total : 0;
                 break;
         }
+
+        // save the modification on the join
+        $this->setPriceModification($discount);
     }
 
     /**
