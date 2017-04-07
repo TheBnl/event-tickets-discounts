@@ -19,6 +19,6 @@ class DiscountAdmin extends ModelAdmin
 {
     private static $managed_models = array('Broarm\EventTickets\Discount');
     private static $url_segment = 'discounts';
-    private static $menu_title = 'Discounts';
-    private static $menu_icon = '/event-tickets_discounts/images/discount-admin.png';
+    private static $menu_title = 'Ticket Discounts';
+    private static $menu_icon = '/event-tickets_discounts/images/discount.png';
 }
