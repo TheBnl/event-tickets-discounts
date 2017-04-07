@@ -55,6 +55,10 @@ class Discount extends PriceModifier
         'Events' => 'CalendarEvent'
     );
 
+    private static $indexes = array(
+        'Code' => 'unique("Code")'
+    );
+
     private static $summary_fields = array(
         'Code' => 'Code',
         'ValidFrom.Nice' => 'Valid from',
@@ -178,12 +182,8 @@ class Discount extends PriceModifier
                 return false;
             } else {
                 $validGroups = $this->Groups()->column('ID');
-                $groupMembers = Member::get()->filter('Groups.ID:ExactMatchMulti', $validGroups)->map('ID', 'Title');
-
-                echo "<pre>";
-                print_r($groupMembers);
-                echo "</pre>";
-                exit();
+                $groupMembers = Member::get()->filter('Groups.ID:ExactMatchMulti', $validGroups);
+                return (bool)$groupMembers->find('ID', $member->ID);
             }
         }
 
