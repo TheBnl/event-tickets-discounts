@@ -35,7 +35,7 @@ class DiscountField extends TextField
             }
 
             // Check if the discount is already used
-            if ($discount->Used) {
+            if ($discount->getUsed()) {
                 $validator->validationError($this->name, _t(
                     'DiscountField.VALIDATION_USED_CHECK',
                     'The entered coupon is already used'
@@ -93,7 +93,7 @@ class DiscountField extends TextField
 
             // If all checks passed add the discount and recalculate the price
             if ($checkDate && $checkEvent && $checkMember) {
-                $discount->Used = true;
+                //$discount->Used = true;
                 $discount->write();
                 $form->getReservation()->PriceModifiers()->add($discount);
                 $form->getReservation()->calculateTotal();

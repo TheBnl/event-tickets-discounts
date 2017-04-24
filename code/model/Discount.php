@@ -27,6 +27,7 @@ use TagField;
  * @property string ValidFrom
  * @property string ValidTill
  * @property float  Amount
+ * @property int    Uses
  * @property bool   Used
  * @property string DiscountType
  * @method ManyManyList Groups
@@ -41,11 +42,11 @@ class Discount extends PriceModifier
 
     private static $db = array(
         'Amount' => 'Decimal',
+        'Uses' => 'Int',
         'DiscountType' => 'Enum("PRICE,PERCENTAGE","PRICE")',
         'Code' => 'Varchar(255)',
         'ValidFrom' => 'SS_Datetime',
-        'ValidTill' => 'SS_Datetime',
-        'Used' => 'Boolean'
+        'ValidTill' => 'SS_Datetime'
     );
 
     private static $default_sort = "Used ASC, ValidFrom DESC";
@@ -63,11 +64,15 @@ class Discount extends PriceModifier
         'Code' => 'Code',
         'ValidFrom.Nice' => 'Valid from',
         'ValidTill.Nice' => 'Valid till',
-        'Used.Nice' => 'Used',
+        'Reservations.Count' => 'Uses'
+    );
+
+    private static $castings = array(
+        'Used' => 'Boolean'
     );
 
     private static $defaults = array(
-        'Valid' => 1
+        'Uses' => 1
     );
 
     public function getCMSFields()
@@ -80,6 +85,7 @@ class Discount extends PriceModifier
             $code = ReadonlyField::create('Code', 'Code'),
             DropdownField::create('DiscountType', _t('Discount.TYPE', 'Type of discount'), $types),
             NumericField::create('Amount', _t('Discount.AMOUNT', 'Amount')),
+            NumericField::create('Uses', _t('Discount.USES', 'Maximum number of uses')),
             $validFrom = DateField::create('ValidFrom', _t('Discount.VALID_FROM', 'Valid from')),
             $validTill = DateField::create('ValidTill', _t('Discount.VALID_TILL', 'Valid till')),
             TagField::create('Groups', _t('Discount.GROUPS', 'Constrain to groups'), Group::get()),
@@ -125,6 +131,16 @@ class Discount extends PriceModifier
     public function getTableTitle()
     {
         return _t('Discount.DISCOUNT', 'Discount');
+    }
+
+    /**
+     * Check if the discount exceeded the maximum uses
+     *
+     * @return bool
+     */
+    public function getUsed()
+    {
+        return $this->Reservations()->count() >= $this->Uses;
     }
 
     /**
@@ -219,6 +235,6 @@ class Discount extends PriceModifier
      */
     public function generateCode()
     {
-        return uniqid();
+        return uniqid($this->ID);
     }
 }
