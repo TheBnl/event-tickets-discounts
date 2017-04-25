@@ -75,6 +75,11 @@ class Discount extends PriceModifier
         'Uses' => 1
     );
 
+    /**
+     * Create the needed cms fields
+     *
+     * @return \FieldList
+     */
     public function getCMSFields()
     {
         $fields = parent::getCMSFields();

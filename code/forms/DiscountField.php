@@ -93,7 +93,6 @@ class DiscountField extends TextField
 
             // If all checks passed add the discount and recalculate the price
             if ($checkDate && $checkEvent && $checkMember) {
-                //$discount->Used = true;
                 $discount->write();
                 $form->getReservation()->PriceModifiers()->add($discount);
                 $form->getReservation()->calculateTotal();
