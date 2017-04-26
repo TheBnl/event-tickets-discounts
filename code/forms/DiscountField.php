@@ -22,7 +22,7 @@ class DiscountField extends TextField
     public function validate($validator)
     {
         // If no discount is set continue doing default validation
-        if (!isset($this->value) && !$this->value) {
+        if (!isset($this->value) || empty($this->value)) {
             return parent::validate($validator);
         }
 
