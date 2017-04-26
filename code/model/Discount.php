@@ -30,8 +30,9 @@ use TagField;
  * @property int    Uses
  * @property bool   Used
  * @property string DiscountType
- * @method ManyManyList Groups
- * @method ManyManyList Events
+ * @method ManyManyList Groups()
+ * @method ManyManyList Events()
+ * @method ManyManyList Reservations()
  */
 class Discount extends PriceModifier
 {
@@ -160,9 +161,7 @@ class Discount extends PriceModifier
                 $discount = ($total / 100 * $this->Amount);
                 $total -= $discount;
                 break;
-            default:
-            case self::PRICE:
-                // never go below zero
+            default: // case price
                 $discount = $this->Amount;
                 $total -= $discount;
                 $total = $total > 0 ? $total : 0;
