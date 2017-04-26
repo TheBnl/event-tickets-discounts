@@ -19,6 +19,24 @@ use TextField;
  */
 class DiscountField extends TextField
 {
+    /**
+     * @var DiscountForm
+     */
+    protected $form;
+
+    /**
+     * Validate the discount if it is set by...
+     * Checking if it exists
+     * Checking if it has uses left
+     * Checking if it has a valid date
+     * Checking if the event is valid
+     * Checking if the discount is valid on one of the registered members
+     * TODO: move all these checks to the discount itself? make a method that returns a error message
+     *
+     * @param \Validator $validator
+     *
+     * @return bool
+     */
     public function validate($validator)
     {
         // If no discount is set continue doing default validation
@@ -38,7 +56,7 @@ class DiscountField extends TextField
         }
 
         // Check if the discount is already used
-        if ($discount->getUsed()) {
+        if ($discount->validateUses()) {
             $validator->validationError($this->name, _t(
                 'DiscountField.VALIDATION_USED_CHECK',
                 'The entered coupon is already used'
@@ -47,8 +65,8 @@ class DiscountField extends TextField
             return false;
         }
 
-        /** @var DiscountForm $form */
-        $form = $this->form;
+        /** @var DiscountForm form */
+        //$this->form;
 
         // Check if the coupon is expired
         if (!$checkDate = $discount->validateDate()) {
@@ -61,7 +79,7 @@ class DiscountField extends TextField
         }
 
         // Check if the coupon is allowed on this event
-        if (!$checkEvent = $discount->validateEvents($form->getReservation()->Event())) {
+        if (!$checkEvent = $discount->validateEvents($this->form->getReservation()->Event())) {
             $validator->validationError($this->name, _t(
                 'DiscountField.VALIDATION_EVENT_CHECK',
                 'The coupon is not allowed on this event'
@@ -72,7 +90,7 @@ class DiscountField extends TextField
 
         // If groups are required check if one of the attendees is in the required group
         if (!$checkMember = $discount->validateGroups()) {
-            foreach ($form->getReservation()->Attendees() as $attendee) {
+            foreach ($this->form->getReservation()->Attendees() as $attendee) {
                 /** @var Attendee $attendee */
                 if ($attendee->Member()->exists() && $member = $attendee->Member()) {
                     if ($checkMember = $discount->validateGroups($member)) {
@@ -94,15 +112,10 @@ class DiscountField extends TextField
             return false;
         }
 
-        // If all checks passed add the discount and recalculate the price
-        if ($checkDate && $checkEvent && $checkMember) {
-            $discount->write();
-            $form->getReservation()->PriceModifiers()->add($discount);
-            $form->getReservation()->calculateTotal();
-            $form->getReservation()->write();
-            return true;
-        }
-
-        return false;
+        $discount->write();
+        $this->form->getReservation()->PriceModifiers()->add($discount);
+        $this->form->getReservation()->calculateTotal();
+        $this->form->getReservation()->write();
+        return true;
     }
 }

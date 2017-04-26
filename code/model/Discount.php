@@ -50,7 +50,7 @@ class Discount extends PriceModifier
         'ValidTill' => 'SS_Datetime'
     );
 
-    private static $default_sort = "Used ASC, ValidFrom DESC";
+    private static $default_sort = "ValidFrom DESC";
 
     private static $many_many = array(
         'Groups' => 'Group',
@@ -66,10 +66,6 @@ class Discount extends PriceModifier
         'ValidFrom.Nice' => 'Valid from',
         'ValidTill.Nice' => 'Valid till',
         'Reservations.Count' => 'Uses'
-    );
-
-    private static $castings = array(
-        'Used' => 'Boolean'
     );
 
     private static $defaults = array(
@@ -144,7 +140,7 @@ class Discount extends PriceModifier
      *
      * @return bool
      */
-    public function getUsed()
+    public function validateUses()
     {
         return $this->Reservations()->count() >= $this->Uses;
     }
