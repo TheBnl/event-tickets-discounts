@@ -65,11 +65,8 @@ class DiscountField extends TextField
             return false;
         }
 
-        /** @var DiscountForm form */
-        //$this->form;
-
         // Check if the coupon is expired
-        if (!$checkDate = $discount->validateDate()) {
+        if ($discount->validateDate()) {
             $validator->validationError($this->name, _t(
                 'DiscountField.VALIDATION_DATE_CHECK',
                 'The coupon is expired'
@@ -79,7 +76,7 @@ class DiscountField extends TextField
         }
 
         // Check if the coupon is allowed on this event
-        if (!$checkEvent = $discount->validateEvents($this->form->getReservation()->Event())) {
+        if ($discount->validateEvents($this->form->getReservation()->Event())) {
             $validator->validationError($this->name, _t(
                 'DiscountField.VALIDATION_EVENT_CHECK',
                 'The coupon is not allowed on this event'
