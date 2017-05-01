@@ -56,7 +56,7 @@ class DiscountField extends TextField
         }
 
         // Check if the discount is already used
-        if ($discount->validateUses()) {
+        if (!$discount->validateUses()) {
             $validator->validationError($this->name, _t(
                 'DiscountField.VALIDATION_USED_CHECK',
                 'The entered coupon is already used'
@@ -66,7 +66,7 @@ class DiscountField extends TextField
         }
 
         // Check if the coupon is expired
-        if ($discount->validateDate()) {
+        if (!$discount->validateDate()) {
             $validator->validationError($this->name, _t(
                 'DiscountField.VALIDATION_DATE_CHECK',
                 'The coupon is expired'
@@ -76,7 +76,7 @@ class DiscountField extends TextField
         }
 
         // Check if the coupon is allowed on this event
-        if ($discount->validateEvents($this->form->getReservation()->Event())) {
+        if (!$discount->validateEvents($this->form->getReservation()->Event())) {
             $validator->validationError($this->name, _t(
                 'DiscountField.VALIDATION_EVENT_CHECK',
                 'The coupon is not allowed on this event'

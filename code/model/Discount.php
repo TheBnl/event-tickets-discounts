@@ -142,7 +142,7 @@ class Discount extends PriceModifier
      */
     public function validateUses()
     {
-        return $this->Reservations()->count() >= $this->Uses;
+        return $this->Reservations()->count() <= $this->Uses;
     }
 
     /**
