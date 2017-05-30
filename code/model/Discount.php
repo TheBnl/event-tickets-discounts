@@ -19,6 +19,7 @@ use NumericField;
 use ReadonlyField;
 use SS_Datetime;
 use TagField;
+use TextareaField;
 
 /**
  * Class Discount
@@ -42,6 +43,7 @@ class Discount extends PriceModifier
     private static $singular_name = 'Discount';
 
     private static $db = array(
+        'Description' => 'Text',
         'Amount' => 'Decimal',
         'Uses' => 'Int',
         'DiscountType' => 'Enum("PRICE,PERCENTAGE","PRICE")',
@@ -63,6 +65,7 @@ class Discount extends PriceModifier
 
     private static $summary_fields = array(
         'Code' => 'Code',
+        'Description' => 'Description',
         'ValidFrom.Nice' => 'Valid from',
         'ValidTill.Nice' => 'Valid till',
         'Reservations.Count' => 'Uses'
@@ -85,6 +88,7 @@ class Discount extends PriceModifier
 
         $fields->addFieldsToTab('Root.Main', array(
             $code = ReadonlyField::create('Code', 'Code'),
+            TextareaField::create('Description', 'Description')->setDescription('The description is only visible in the cms'),
             DropdownField::create('DiscountType', _t('Discount.TYPE', 'Type of discount'), $types),
             NumericField::create('Amount', _t('Discount.AMOUNT', 'Amount')),
             NumericField::create('Uses', _t('Discount.USES', 'Maximum number of uses')),

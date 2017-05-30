@@ -84,7 +84,7 @@ class DiscountField extends TextField
 
             return false;
         }
-
+        
         // If groups are required check if one of the attendees is in the required group
         if (!$checkMember = $discount->validateGroups()) {
             foreach ($this->form->getReservation()->Attendees() as $attendee) {
