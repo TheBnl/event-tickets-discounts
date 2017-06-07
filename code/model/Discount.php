@@ -20,6 +20,7 @@ use ReadonlyField;
 use SS_Datetime;
 use TagField;
 use TextareaField;
+use TextField;
 
 /**
  * Class Discount
@@ -87,7 +88,7 @@ class Discount extends PriceModifier
         $types = $this->dbObject('DiscountType')->enumValues();
 
         $fields->addFieldsToTab('Root.Main', array(
-            $code = ReadonlyField::create('Code', 'Code'),
+            $code = TextField::create('Code', 'Code'),
             TextareaField::create('Description', 'Description')->setDescription('The description is only visible in the cms'),
             DropdownField::create('DiscountType', _t('Discount.TYPE', 'Type of discount'), $types),
             NumericField::create('Amount', _t('Discount.AMOUNT', 'Amount')),
@@ -115,11 +116,21 @@ class Discount extends PriceModifier
 
     public function onBeforeWrite()
     {
+        // Generate or validate the set code
         if (empty($this->Code)) {
             $this->Code = $this->generateCode();
+        } elseif (empty($this->Title) && $codes = self::get()->filter('Code:PartialMatch', $this->Code)) {
+            if ($codes->count() >= 1) {
+                $this->Code .= "-{$codes->count()}";
+            }
+        }
+
+        // Set the title
+        if (empty($this->Title)) {
             $this->Title = $this->Code;
         }
 
+        // Set the default dates
         if (empty($this->ValidFrom) && empty($this->ValidTill)) {
             $format = 'Y-m-d';
             $this->ValidFrom = $start = date($format);
