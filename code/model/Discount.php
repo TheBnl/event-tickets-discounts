@@ -126,9 +126,7 @@ class Discount extends PriceModifier
         }
 
         // Set the title
-        if (empty($this->Title)) {
-            $this->Title = $this->Code;
-        }
+        $this->Title = $this->Code;
 
         // Set the default dates
         if (empty($this->ValidFrom) && empty($this->ValidTill)) {
