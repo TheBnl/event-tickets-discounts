@@ -95,8 +95,10 @@ class Discount extends PriceModifier
             NumericField::create('Uses', _t('Discount.USES', 'Maximum number of uses')),
             $validFrom = DateField::create('ValidFrom', _t('Discount.VALID_FROM', 'Valid from')),
             $validTill = DateField::create('ValidTill', _t('Discount.VALID_TILL', 'Valid till')),
-            TagField::create('Groups', _t('Discount.GROUPS', 'Constrain to groups'), Group::get()),
+            TagField::create('Groups', _t('Discount.GROUPS', 'Constrain to groups'), Group::get())
+                ->setShouldLazyLoad(true),
             TagField::create('Events', _t('Discount.EVENTS', 'Constrain to events'), CalendarEvent::get())
+                ->setShouldLazyLoad(true)
         ));
 
         $code->setDescription(
