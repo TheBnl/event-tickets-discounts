@@ -9,14 +9,12 @@
 namespace Broarm\EventTickets;
 
 use CalendarEvent;
-use Currency;
 use DateField;
 use DropdownField;
 use Group;
 use ManyManyList;
 use Member;
 use NumericField;
-use ReadonlyField;
 use SS_Datetime;
 use TagField;
 use TextareaField;
@@ -88,11 +86,13 @@ class Discount extends PriceModifier
         $fields = parent::getCMSFields();
 
         $types = $this->dbObject('DiscountType')->enumValues();
+        $appliesTo = $this->dbObject('AppliesTo')->enumValues();
 
         $fields->addFieldsToTab('Root.Main', array(
             $code = TextField::create('Code', 'Code'),
             TextareaField::create('Description', 'Description')->setDescription('The description is only visible in the cms'),
             DropdownField::create('DiscountType', _t('Discount.TYPE', 'Type of discount'), $types),
+            DropdownField::create('AppliesTo', _t('Discount.AppliesTo', 'Discount applies to'), $appliesTo),
             NumericField::create('Amount', _t('Discount.AMOUNT', 'Amount')),
             NumericField::create('Uses', _t('Discount.USES', 'Maximum number of uses')),
             $validFrom = DateField::create('ValidFrom', _t('Discount.VALID_FROM', 'Valid from')),
