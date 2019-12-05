@@ -30,7 +30,7 @@ use TextField;
  * @property string ValidTill
  * @property float  Amount
  * @property int    Uses
- * @property bool   Used
+ * @property bool   AppliesTo
  * @property string DiscountType
  * @method ManyManyList Groups()
  * @method ManyManyList Events()
@@ -40,6 +40,7 @@ class Discount extends PriceModifier
 {
     const PRICE = 'PRICE';
     const PERCENTAGE = 'PERCENTAGE';
+    const APPLIES_EACH_TICKET = 'EACH_TICKET';
 
     private static $singular_name = 'Discount';
 
@@ -50,7 +51,8 @@ class Discount extends PriceModifier
         'DiscountType' => 'Enum("PRICE,PERCENTAGE","PRICE")',
         'Code' => 'Varchar(255)',
         'ValidFrom' => 'SS_Datetime',
-        'ValidTill' => 'SS_Datetime'
+        'ValidTill' => 'SS_Datetime',
+        'AppliesTo' => 'Enum("CART,EACH_TICKET","CART")'
     );
 
     private static $default_sort = "ValidFrom DESC";
@@ -163,9 +165,10 @@ class Discount extends PriceModifier
     /**
      * Calculate the discount
      *
-     * @param $total
+     * @param float $total
+     * @param Reservation $reservation
      */
-    public function updateTotal(&$total)
+    public function updateTotal(&$total, Reservation $reservation)
     {
         switch ($this->DiscountType) {
             case self::PERCENTAGE:
@@ -174,7 +177,11 @@ class Discount extends PriceModifier
                 break;
             default: // case price
                 $discount = $this->Amount;
-                $total -= $discount;
+                if ($this->AppliesTo === self::APPLIES_EACH_TICKET) {
+                    $total -= ($discount * $reservation->Attendees()->count());
+                } else {
+                    $total -= $discount;
+                }
                 $total = $total > 0 ? $total : 0;
                 break;
         }
