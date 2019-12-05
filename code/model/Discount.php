@@ -175,13 +175,13 @@ class Discount extends PriceModifier
                 $discount = ($total / 100 * $this->Amount);
                 $total -= $discount;
                 break;
-            default: // case price
-                $discount = $this->Amount;
-                if ($this->AppliesTo === self::APPLIES_EACH_TICKET) {
-                    $total -= ($discount * $reservation->Attendees()->count());
-                } else {
-                    $total -= $discount;
-                }
+            default:
+                // case price
+                // A Percentage always get's calculated over all tickets
+                $discount = $this->AppliesTo === self::APPLIES_EACH_TICKET
+                    ? $this->Amount * $reservation->Attendees()->count()
+                    : $this->Amount;
+                $total -= $discount;
                 $total = $total > 0 ? $total : 0;
                 break;
         }
