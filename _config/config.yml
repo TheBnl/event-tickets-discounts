@@ -2,6 +2,6 @@
 Name: event-tickets-discounts
 After: 'event-tickets/*'
 ---
-CalendarEvent_Controller:
+Broarm\EventTickets\ReservationForm:
   extensions:
-    - 'Broarm\EventTickets\DiscountStep'
+      - Broarm\EventTickets\AddDiscountExtension

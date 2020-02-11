@@ -36,6 +36,8 @@ class DiscountField extends TextField
      * @param \Validator $validator
      *
      * @return bool
+     *
+     * @throws \ValidationException
      */
     public function validate($validator)
     {
@@ -84,7 +86,7 @@ class DiscountField extends TextField
 
             return false;
         }
-        
+
         // If groups are required check if one of the attendees is in the required group
         if (!$checkMember = $discount->validateGroups()) {
             foreach ($this->form->getReservation()->Attendees() as $attendee) {
@@ -99,7 +101,7 @@ class DiscountField extends TextField
                 }
             }
         }
-        
+
         if (!$checkMember) {
             $validator->validationError($this->name, _t(
                 'DiscountField.VALIDATION_MEMBER_CHECK',
