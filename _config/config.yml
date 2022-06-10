@@ -2,9 +2,10 @@
 Name: event-tickets-discounts
 After: 'event-tickets/*'
 ---
-Broarm\EventTickets\ReservationForm:
-  extensions:
-      - Broarm\EventTickets\AddDiscountExtension
-CalendarEvent:
-  extensions:
-      - Broarm\EventTickets\DiscountEventExtension
+# Broarm\EventTickets\ReservationForm:
+#   extensions:
+#     - Broarm\EventTickets\Discounts\Extensions\AddDiscountExtension
+
+# YourTicketPageClass:
+#   extensions:
+#     - Broarm\EventTickets\Discounts\Extensions\DiscountEventExtension

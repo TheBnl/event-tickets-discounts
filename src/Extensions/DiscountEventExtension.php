@@ -1,14 +1,14 @@
 <?php
 
-namespace Broarm\EventTickets;
+namespace Broarm\EventTickets\Discounts\Extensions;
 
-use CheckboxField;
-use DataExtension;
-use FieldList;
+use SilverStripe\Forms\CheckboxField;
+use SilverStripe\ORM\DataExtension;
+use SilverStripe\Forms\FieldList;
 
 /**
  * Class DiscountEventExtension
- * @package Broarm\EventTickets
+ * @package Broarm\EventTickets\Discounts
  * @property \CalendarEvent $owner
  */
 class DiscountEventExtension extends DataExtension

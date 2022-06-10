@@ -6,19 +6,22 @@
  * Date: 30/03/17
  */
 
-namespace Broarm\EventTickets;
+namespace Broarm\EventTickets\Discounts\Model;
 
-use CalendarEvent;
-use DateField;
-use DropdownField;
-use Group;
-use ManyManyList;
-use Member;
-use NumericField;
-use SS_Datetime;
-use TagField;
-use TextareaField;
-use TextField;
+use Broarm\EventTickets\Model\PriceModifier;
+use Broarm\EventTickets\Model\Reservation;
+use Broarm\EventTickets\Model\Ticket;
+use SilverStripe\CMS\Model\SiteTree;
+use SilverStripe\Forms\DateField;
+use SilverStripe\Forms\DropdownField;
+use SilverStripe\Security\Group;
+use SilverStripe\ORM\ManyManyList;
+use SilverStripe\Security\Member;
+use SilverStripe\Forms\NumericField;
+use SilverStripe\TagField\TagField;
+use SilverStripe\Forms\TextareaField;
+use SilverStripe\Forms\TextField;
+use SilverStripe\ORM\FieldType\DBDatetime;
 
 /**
  * Class Discount
@@ -31,7 +34,7 @@ use TextField;
  * @property bool   AppliesTo
  * @property string DiscountType
  * @method ManyManyList Groups()
- * @method ManyManyList Events()
+ * @method ManyManyList TicketPages()
  * @method ManyManyList Reservations()
  */
 class Discount extends PriceModifier
@@ -40,41 +43,41 @@ class Discount extends PriceModifier
     const PERCENTAGE = 'PERCENTAGE';
     const APPLIES_EACH_TICKET = 'EACH_TICKET';
 
-    private static $singular_name = 'Discount';
+    private static $table_name = 'EventTickets_Discount';
 
-    private static $db = array(
-        'Description' => 'Text',
-        'Amount' => 'Decimal',
-        'Uses' => 'Int',
-        'DiscountType' => 'Enum("PRICE,PERCENTAGE","PRICE")',
+    private static $db = [
         'Code' => 'Varchar(255)',
-        'ValidFrom' => 'SS_Datetime',
-        'ValidTill' => 'SS_Datetime',
-        'AppliesTo' => 'Enum("CART,EACH_TICKET","CART")'
-    );
+        'DiscountType' => 'Enum("PRICE,PERCENTAGE","PRICE")',
+        'Amount' => 'Decimal',
+        'AppliesTo' => 'Enum("CART,EACH_TICKET","CART")',
+        'Uses' => 'Int',
+        'ValidFrom' => 'Datetime',
+        'ValidTill' => 'Datetime',
+        'Description' => 'Text',
+    ];
 
-    private static $default_sort = "ValidFrom DESC";
+    private static $default_sort = 'ValidFrom DESC';
 
-    private static $many_many = array(
-        'Groups' => 'Group',
-        'Events' => 'CalendarEvent'
-    );
+    private static $many_many = [
+        'Groups' => Group::class,
+        'TicketPages' => SiteTree::class
+    ];
 
-    private static $indexes = array(
+    private static $indexes = [
         'Code' => 'unique("Code")'
-    );
+    ];
 
-    private static $summary_fields = array(
+    private static $summary_fields = [
         'Code' => 'Code',
         'Description' => 'Description',
         'ValidFrom.Nice' => 'Valid from',
         'ValidTill.Nice' => 'Valid till',
         'Reservations.Count' => 'Uses'
-    );
+    ];
 
-    private static $defaults = array(
+    private static $defaults = [
         'Uses' => 1
-    );
+    ];
 
     /**
      * Create the needed cms fields
@@ -88,33 +91,33 @@ class Discount extends PriceModifier
         $types = $this->dbObject('DiscountType')->enumValues();
         $appliesTo = $this->dbObject('AppliesTo')->enumValues();
 
-        $fields->addFieldsToTab('Root.Main', array(
-            $code = TextField::create('Code', 'Code'),
-            TextareaField::create('Description', 'Description')->setDescription('The description is only visible in the cms'),
-            DropdownField::create('DiscountType', _t('Discount.TYPE', 'Type of discount'), $types),
-            DropdownField::create('AppliesTo', _t('Discount.AppliesTo', 'Discount applies to'), $appliesTo),
-            NumericField::create('Amount', _t('Discount.AMOUNT', 'Amount')),
-            NumericField::create('Uses', _t('Discount.USES', 'Maximum number of uses')),
-            $validFrom = DateField::create('ValidFrom', _t('Discount.VALID_FROM', 'Valid from')),
-            $validTill = DateField::create('ValidTill', _t('Discount.VALID_TILL', 'Valid till')),
-            TagField::create('Groups', _t('Discount.GROUPS', 'Constrain to groups'), Group::get())
+        $ticketPageIds = Ticket::get()->column('TicketPageID');
+        $ticketPages = [];
+        if (!empty($ticketPageIds)) {
+            $ticketPages = SiteTree::get()->filter(['ID' => $ticketPageIds]);
+        }
+
+        $fields->addFieldsToTab('Root.Main', [
+            TextField::create('Code', 'Code')
+                ->setDescription(_t(__CLASS__ . '.CodeHelp', 'The code is generated after saving')),
+            TextareaField::create('Description', _t(__CLASS__ . '.Description', 'Description'))
+                ->setDescription(_t(__CLASS__ . '.DescriptionHelp', 'The description is only visible in the cms')),
+            DropdownField::create('DiscountType', _t(__CLASS__ . '.Type', 'Type of discount'), $types),
+            DropdownField::create('AppliesTo', _t(__CLASS__ . '.AppliesTo', 'Discount applies to'), $appliesTo),
+            NumericField::create('Amount', _t(__CLASS__ . '.Amount', 'Amount'))->setScale(2),
+            
+        ]);
+
+        $fields->addFieldsToTab('Root.Constraints', [
+            NumericField::create('Uses', _t(__CLASS__ . '.Uses', 'Maximum number of uses')),
+            DateField::create('ValidFrom', _t(__CLASS__ . '.ValidForm', 'Valid from')),
+            DateField::create('ValidTill', _t(__CLASS__ . '.ValidTill', 'Valid till')),
+            TagField::create('Groups', _t(__CLASS__ . '.Groups', 'Constrain to groups'), Group::get())
                 ->setShouldLazyLoad(true),
-            TagField::create('Events', _t('Discount.EVENTS', 'Constrain to events'), CalendarEvent::get())
+            TagField::create('TicketPages', _t(__CLASS__ . '.TicketPages', 'Constrain to events'), $ticketPages)
                 ->setShouldLazyLoad(true)
-        ));
+        ]);
 
-        $code->setDescription(
-            _t('Discount.CODE_HELP', 'The code is generated after saving')
-        );
-
-        $validFrom
-            ->setConfig('showcalendar', true)
-            ->setDescription(_t('Discount.VALID_FROM_HELP', 'If no date is set the current date is used'));
-        $validTill
-            ->setConfig('showcalendar', true)
-            ->setDescription(_t('Discount.VALID_TILL_HELP', 'If no date is set the current date + 1 year is used'));
-
-        $fields->removeByName(array('Title'));
         return $fields;
     }
 
@@ -123,20 +126,11 @@ class Discount extends PriceModifier
         // Generate or validate the set code
         if (empty($this->Code)) {
             $this->Code = $this->generateCode();
-        } elseif (empty($this->Title) && $codes = self::get()->filter('Code:PartialMatch', $this->Code)) {
-            if ($codes->count() >= 1) {
-                $this->Code .= "-{$codes->count()}";
-            }
         }
 
-        // Set the title
-        $this->Title = $this->Code;
-
-        // Set the default dates
-        if (empty($this->ValidFrom) && empty($this->ValidTill)) {
-            $format = 'Y-m-d';
-            $this->ValidFrom = $start = date($format);
-            $this->ValidTill = date($format, strtotime("$start + 1 year"));
+        if (empty($this->Title)) {
+            // Set the title
+            $this->Title = $this->Code;
         }
 
         parent::onBeforeWrite();
@@ -149,7 +143,7 @@ class Discount extends PriceModifier
      */
     public function getTableTitle()
     {
-        return _t('Discount.DISCOUNT', 'Discount');
+        return _t(__CLASS__ . '.Discount', 'Discount');
     }
 
     /**
@@ -197,12 +191,18 @@ class Discount extends PriceModifier
      */
     public function validateDate()
     {
-        /** @var SS_Datetime $from */
-        $from = $this->dbObject('ValidFrom');
-        /** @var SS_Datetime $till */
-        $till = $this->dbObject('ValidTill');
+        $valid = true;
+        if (!empty($this->ValidFrom)) {
+            $from = $this->dbObject('ValidFrom');
+            $valid = $from->InPast();
+        }
 
-        return (bool)($from->InPast() && $till->InFuture());
+        if (!empty($this->ValidTill)) {
+            $till = $this->dbObject('ValidTill');
+            $valid = $till->InFuture();
+        }
+
+        return $valid;
     }
 
     /**
@@ -231,18 +231,18 @@ class Discount extends PriceModifier
     /**
      * Validate if the given event is in the group of allowed events
      *
-     * @param CalendarEvent $event
+     * @param $event
      *
      * @return bool
      */
-    public function validateEvents(CalendarEvent $event)
+    public function validateEvents($event)
     {
         // If events are attached to the discount, check if valid
-        if ($this->Events()->exists()) {
+        if ($this->TicketPages()->exists()) {
             if (empty($event)) {
                 return false;
             } else {
-                $validEvents = $this->Events()->column('ID');
+                $validEvents = $this->TicketPages()->column('ID');
                 return in_array($event->ID, $validEvents);
             }
         }

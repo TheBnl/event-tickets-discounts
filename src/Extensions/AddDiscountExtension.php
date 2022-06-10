@@ -1,12 +1,13 @@
 <?php
 
-namespace Broarm\EventTickets;
+namespace Broarm\EventTickets\Discounts\Extensions;
 
-use Extension;
+use Broarm\EventTickets\Discounts\Forms\DiscountField;
+use SilverStripe\Core\Extension;
 
 /**
  * Class AddDiscountExtension
- * @package Broarm\EventTickets
+ * @package Broarm\EventTickets\Discounts
  * @property ReservationForm $owner
  */
 class AddDiscountExtension extends Extension
@@ -15,11 +16,11 @@ class AddDiscountExtension extends Extension
     {
         $fields = $this->owner->Fields();
         $reservation = $this->owner->getReservation();
-        $event = $reservation->Event();
+        $event = $reservation ? $reservation->TicketPage() : $this->owner->getController();
 
         if (!$event->DisableDiscountField) {
             $fields->add(
-                $field = DiscountField::create('CouponCode', _t('DiscountForm.COUPON_CODE', 'Coupon code'))
+                $field = DiscountField::create('CouponCode', _t(DiscountForm::class . '.CouponCode', 'Coupon code'))
             );
             $field->setForm($this->owner);
         }

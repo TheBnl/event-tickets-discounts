@@ -1,23 +1,25 @@
 {
   "name": "bramdeleeuw/silverstripe-event-tickets-discounts",
   "description": "Discount module for SilverStripe Event Tickets",
-  "type": "silverstripe-module",
+  "type": "silverstripe-vendormodule",
   "homepage": "https://github.com/TheBnl/event-tickets-discounts",
   "keywords": ["silverstripe", "ticket", "omnipay", "event", "calendar", "discount"],
   "license": "BSD-3-Clause",
   "authors": [
     {
       "name": "Bram de Leeuw",
-      "email": "bram-de-leeuw@hotmai.com"
+      "email": "bram-de-leeuw@hotmail.com"
     }
   ],
   "require": {
-    "silverstripe/framework": "~3.1",
-    "silverstripe/cms": "~3.1",
-    "bramdeleeuw/silverstripe-event-tickets": "^1.3.0",
+    "silverstripe/framework": "^4",
+    "silverstripe/cms": "^4",
+    "bramdeleeuw/silverstripe-event-tickets": "^2",
     "silverstripe/tagfield": "*"
   },
-  "extra": {
-    "installer-name": "event-tickets_discounts"
+  "autoload": {
+      "psr-4": {
+          "Broarm\\EventTickets\\Discounts\\": "src"
+      }
   }
 }

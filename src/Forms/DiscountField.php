@@ -6,11 +6,13 @@
  * Date: 10/03/17
  */
 
-namespace Broarm\EventTickets;
+namespace Broarm\EventTickets\Discounts\Forms;
 
-use FieldList;
-use FormAction;
-use TextField;
+use Broarm\EventTickets\Discounts\Model\Discount;
+use SilverStripe\Forms\FieldList;
+use SilverStripe\Forms\FormAction;
+use SilverStripe\Forms\TextField;
+use SilverStripe\Forms\Validator;
 
 /**
  * Class DiscountForm
@@ -33,7 +35,7 @@ class DiscountField extends TextField
      * Checking if the discount is valid on one of the registered members
      * TODO: move all these checks to the discount itself? make a method that returns a error message
      *
-     * @param \Validator $validator
+     * @param Validator $validator
      *
      * @return bool
      *
@@ -49,40 +51,40 @@ class DiscountField extends TextField
         /** @var Discount $discount */
         // Check if the discount exists
         if (!$discount = Discount::get()->find('Code', $this->value)) {
-            $validator->validationError($this->name, _t(
-                'DiscountField.VALIDATION_NOT_FOUND',
+            $validator->validationError($this->getName(), _t(
+                __CLASS__ . '.VALIDATION_NOT_FOUND',
                 'The entered coupon is not found'
-            ), 'validation');
+            ));
 
             return false;
         }
 
         // Check if the discount is already used
         if (!$discount->validateUses()) {
-            $validator->validationError($this->name, _t(
-                'DiscountField.VALIDATION_USED_CHECK',
+            $validator->validationError($this->getName(), _t(
+                __CLASS__ . '.VALIDATION_USED_CHECK',
                 'The entered coupon is already used'
-            ), 'validation');
+            ));
 
             return false;
         }
 
         // Check if the coupon is expired
         if (!$discount->validateDate()) {
-            $validator->validationError($this->name, _t(
-                'DiscountField.VALIDATION_DATE_CHECK',
+            $validator->validationError($this->getName(), _t(
+                __CLASS__ . '.VALIDATION_DATE_CHECK',
                 'The coupon is expired'
-            ), 'validation');
+            ));
 
             return false;
         }
 
         // Check if the coupon is allowed on this event
-        if (!$discount->validateEvents($this->form->getReservation()->Event())) {
-            $validator->validationError($this->name, _t(
-                'DiscountField.VALIDATION_EVENT_CHECK',
+        if (!$discount->validateEvents($this->form->getReservation()->TicketPage())) {
+            $validator->validationError($this->getName(), _t(
+                __CLASS__ . '.VALIDATION_EVENT_CHECK',
                 'The coupon is not allowed on this event'
-            ), 'validation');
+            ));
 
             return false;
         }
@@ -103,10 +105,10 @@ class DiscountField extends TextField
         }
 
         if (!$checkMember) {
-            $validator->validationError($this->name, _t(
-                'DiscountField.VALIDATION_MEMBER_CHECK',
+            $validator->validationError($this->getName(), _t(
+                __CLASS__ . 'DiscountField.VALIDATION_MEMBER_CHECK',
                 'None of the attendees is allowed to use this coupon'
-            ), 'validation');
+            ));
 
             return false;
         }
