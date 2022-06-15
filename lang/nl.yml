@@ -1,8 +1,8 @@
 nl:
   CheckoutSteps:
     discount: Kortingscode
-  Discount:
+  Broarm\EventTickets\Discounts\Model\Discount:
     Discount: Korting
-  DiscountForm:
+  Broarm\EventTickets\Discounts\Forms\DiscountForm:
     CouponCode: Kortingscode
-    Continue: Ga verder
+    AddDiscount: Code toevoegen

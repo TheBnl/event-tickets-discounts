@@ -1,16 +1,8 @@
 <?php
-/**
- * DiscountForm.php
- *
- * @author Bram de Leeuw
- * Date: 10/03/17
- */
 
 namespace Broarm\EventTickets\Discounts\Forms;
 
 use Broarm\EventTickets\Discounts\Model\Discount;
-use SilverStripe\Forms\FieldList;
-use SilverStripe\Forms\FormAction;
 use SilverStripe\Forms\TextField;
 use SilverStripe\Forms\Validator;
 
