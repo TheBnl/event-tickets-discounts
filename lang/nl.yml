@@ -6,3 +6,9 @@ nl:
   Broarm\EventTickets\Discounts\Forms\DiscountForm:
     CouponCode: Kortingscode
     AddDiscount: Code toevoegen
+  Broarm\EventTickets\Discounts\Forms\DiscountField:
+    VALIDATION_NOT_FOUND: 'De ingevulde coupon is niet gevonden'
+    VALIDATION_USED_CHECK: 'De ingevulde coupon is al gebruikt'
+    VALIDATION_DATE_CHECK: 'De coupon is verlopen'
+    VALIDATION_EVENT_CHECK: 'De coupon is niet toegestaan op dit evenement'
+    VALIDATION_MEMBER_CHECK: 'Geen van de aanwezigen mag deze coupon gebruiken'
