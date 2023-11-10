@@ -71,8 +71,9 @@ class DiscountField extends TextField
             return false;
         }
 
+        $reservation = $this->form->getReservation();
         // Check if the coupon is allowed on this event
-        if (!$discount->validateEvents($this->form->getReservation()->TicketPage())) {
+        if (!$discount->validateEvents($reservation->TicketPage())) {
             $validator->validationError($this->getName(), _t(
                 __CLASS__ . '.VALIDATION_EVENT_CHECK',
                 'The coupon is not allowed on this event'
@@ -81,9 +82,27 @@ class DiscountField extends TextField
             return false;
         }
 
+        if (!$discount->validateOncePerEmail($reservation)) {
+            $validator->validationError($this->getName(), _t(
+                __CLASS__ . '.VALIDATION_EMAIL_CHECK',
+                'The coupon is only usable once'
+            ));
+
+            return false;
+        }
+
+        if (!$discount->validateTicketType($reservation)) {
+            $validator->validationError($this->getName(), _t(
+                __CLASS__ . '.VALIDATION_TICKET_TYPE_CHECK',
+                'Your missing the product this coupon is allowed on'
+            ));
+
+            return false;
+        }
+
         // If groups are required check if one of the attendees is in the required group
         if (!$checkMember = $discount->validateGroups()) {
-            foreach ($this->form->getReservation()->Attendees() as $attendee) {
+            foreach ($reservation->Attendees() as $attendee) {
                 /** @var Attendee $attendee */
                 if ($attendee->Member()->exists() && $member = $attendee->Member()) {
                     if ($checkMember = $discount->validateGroups($member)) {

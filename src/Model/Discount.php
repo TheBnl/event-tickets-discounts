@@ -8,10 +8,14 @@
 
 namespace Broarm\EventTickets\Discounts\Model;
 
+use Broarm\EventTickets\Model\Buyable;
 use Broarm\EventTickets\Model\PriceModifier;
 use Broarm\EventTickets\Model\Reservation;
 use Broarm\EventTickets\Model\Ticket;
 use SilverStripe\CMS\Model\SiteTree;
+use SilverStripe\Core\ClassInfo;
+use SilverStripe\Forms\CheckboxField;
+use SilverStripe\Forms\CheckboxSetField;
 use SilverStripe\Forms\DateField;
 use SilverStripe\Forms\DropdownField;
 use SilverStripe\Security\Group;
@@ -21,7 +25,6 @@ use SilverStripe\Forms\NumericField;
 use SilverStripe\TagField\TagField;
 use SilverStripe\Forms\TextareaField;
 use SilverStripe\Forms\TextField;
-use SilverStripe\ORM\FieldType\DBDatetime;
 
 /**
  * Class Discount
@@ -54,6 +57,8 @@ class Discount extends PriceModifier
         'ValidFrom' => 'Datetime',
         'ValidTill' => 'Datetime',
         'Description' => 'Text',
+        'TicketType' => 'Varchar',
+        'OncePerEmail' => 'Boolean'
     ];
 
     private static $default_sort = 'ValidFrom DESC';
@@ -68,10 +73,10 @@ class Discount extends PriceModifier
     ];
 
     private static $summary_fields = [
-        'Code' => 'Code',
-        'Description' => 'Description',
-        'ValidFrom.Nice' => 'Valid from',
-        'ValidTill.Nice' => 'Valid till',
+        'Code',
+        'Description',
+        'ValidFrom',
+        'ValidTill',
         'Reservations.Count' => 'Uses'
     ];
 
@@ -79,61 +84,73 @@ class Discount extends PriceModifier
         'Uses' => 1
     ];
 
-    /**
-     * Create the needed cms fields
-     *
-     * @return \FieldList
-     */
+    public function populateDefaults()
+    {
+        parent::populateDefaults();
+        $code = $this->generateCode();
+        $this->Code = $code;
+        $this->Title = $code;
+    }
+
     public function getCMSFields()
     {
         $fields = parent::getCMSFields();
-
-        $types = $this->dbObject('DiscountType')->enumValues();
-        $appliesTo = $this->dbObject('AppliesTo')->enumValues();
-
-        $ticketPageIds = Ticket::get()->column('TicketPageID');
-        $ticketPages = [];
-        if (!empty($ticketPageIds)) {
-            $ticketPages = SiteTree::get()->filter(['ID' => $ticketPageIds]);
-        }
-
+        $fields->removeByName(['Groups', 'TicketPages']);
         $fields->addFieldsToTab('Root.Main', [
-            TextField::create('Code', 'Code')
-                ->setDescription(_t(__CLASS__ . '.CodeHelp', 'The code is generated after saving')),
-            TextareaField::create('Description', _t(__CLASS__ . '.Description', 'Description'))
+            TextField::create('Code', $this->fieldLabel('Code'))
+                ->setDescription(_t(__CLASS__ . '.CodeHelp', 'The code can be customised')),
+            TextareaField::create('Description', $this->fieldLabel('Description'))
                 ->setDescription(_t(__CLASS__ . '.DescriptionHelp', 'The description is only visible in the cms')),
-            DropdownField::create('DiscountType', _t(__CLASS__ . '.Type', 'Type of discount'), $types),
-            DropdownField::create('AppliesTo', _t(__CLASS__ . '.AppliesTo', 'Discount applies to'), $appliesTo),
-            NumericField::create('Amount', _t(__CLASS__ . '.Amount', 'Amount'))->setScale(2),
-            
+            DropdownField::create('DiscountType', $this->fieldLabel('DiscountType'))
+                ->setSource($this->friendlyEnum('DiscountType')),
+            DropdownField::create('AppliesTo', $this->fieldLabel('AppliesTo'))
+                ->setSource($this->friendlyEnum('AppliesTo')),
+            NumericField::create('Amount', $this->fieldLabel('Amount'))
+                ->setScale(2), 
         ]);
 
         $fields->addFieldsToTab('Root.Constraints', [
-            NumericField::create('Uses', _t(__CLASS__ . '.Uses', 'Maximum number of uses')),
-            DateField::create('ValidFrom', _t(__CLASS__ . '.ValidForm', 'Valid from')),
-            DateField::create('ValidTill', _t(__CLASS__ . '.ValidTill', 'Valid till')),
-            TagField::create('Groups', _t(__CLASS__ . '.Groups', 'Constrain to groups'), Group::get())
+            NumericField::create('Uses', $this->fieldLabel('Uses'))
+                ->setDescription(_t(__CLASS__ . '.UsesHelp', 'Set to "-1" for unlimited uses')),
+            CheckboxField::create('OncePerEmail', $this->fieldLabel('OncePerEmail')),
+            DateField::create('ValidFrom', $this->fieldLabel('ValidFrom')),
+            DateField::create('ValidTill', $this->fieldLabel('ValidTill')),
+            TagField::create('Groups', $this->fieldLabel('Groups'))
+                ->setSource(Group::get())
                 ->setShouldLazyLoad(true),
-            TagField::create('TicketPages', _t(__CLASS__ . '.TicketPages', 'Constrain to events'), $ticketPages)
-                ->setShouldLazyLoad(true)
+            TagField::create('TicketPages', $this->fieldLabel('TicketPages'))
+                ->setSource($this->ticketPages())
+                ->setShouldLazyLoad(true),
+            CheckboxSetField::create('TicketType', $this->fieldLabel('TicketType'))
+                ->setSource($this->ticketTypes())
         ]);
 
         return $fields;
     }
 
-    public function onBeforeWrite()
+    public function friendlyEnum($enum)
     {
-        // Generate or validate the set code
-        if (empty($this->Code)) {
-            $this->Code = $this->generateCode();
-        }
+        return array_map(function ($value) use ($enum) {
+            $fallback = is_numeric($value) ? $value : ucfirst(strtolower($value));
+            return _t(__CLASS__ . ".{$enum}_{$value}", $fallback);
+        }, $this->dbObject($enum)->enumValues());
+    }
 
-        if (empty($this->Title)) {
-            // Set the title
-            $this->Title = $this->Code;
-        }
+    public function ticketTypes()
+    {
+        $ticketTypes = ClassInfo::subclassesFor(Buyable::class);
+        $ticketTypes = array_combine($ticketTypes, $ticketTypes);
+        return array_map(fn($class) => singleton($class)->i18n_singular_name(), $ticketTypes);
+    }
 
-        parent::onBeforeWrite();
+    public function ticketPages()
+    {
+        $ticketPageIds = Ticket::get()->column('TicketPageID');
+        $ticketPages = [];
+        if (!empty($ticketPageIds)) {
+            $ticketPages = SiteTree::get()->filter(['ID' => $ticketPageIds]);
+        }
+        return $ticketPages;
     }
 
     /**
@@ -143,17 +160,7 @@ class Discount extends PriceModifier
      */
     public function getTableTitle()
     {
-        return _t(__CLASS__ . '.Discount', 'Discount');
-    }
-
-    /**
-     * Check if the discount exceeded the maximum uses
-     *
-     * @return bool
-     */
-    public function validateUses()
-    {
-        return $this->Reservations()->count() <= $this->Uses;
+        return $this->i18n_singular_name();
     }
 
     /**
@@ -182,6 +189,41 @@ class Discount extends PriceModifier
 
         // save the modification on the join
         $this->setPriceModification($discount);
+    }
+
+    public function validateOncePerEmail(Reservation $reservation)
+    {
+        if (!$this->OncePerEmail) {
+            return true;
+        }
+
+        $email = $reservation->Email;
+        return !$this->Reservations()->filter(['Email' => $email])->exists();
+    }
+
+    public function validateTicketType(Reservation $reservation)
+    {
+        if (!$this->TicketType) {
+            return true;
+        }
+
+        $allowedTypes = json_decode($this->TicketType ?? '', true);
+        return $reservation->OrderItems()->filter(['Buyable.ClassName' => $allowedTypes])->exists();
+    }
+
+    /**
+     * Check if the discount exceeded the maximum uses
+     *
+     * @return bool
+     */
+    public function validateUses()
+    {
+        $uses = $this->Uses;
+        if ($uses === -1) {
+            return true;
+        }
+
+        return $this->Reservations()->count() <= $uses;
     }
 
     /**
@@ -214,18 +256,17 @@ class Discount extends PriceModifier
      */
     public function validateGroups(Member $member = null)
     {
-        // If groups are attached to the discount, check if valid
-        if ($this->Groups()->exists()) {
-            if (empty($member)) {
-                return false;
-            } else {
-                $validGroups = $this->Groups()->column('ID');
-                $groupMembers = Member::get()->filter('Groups.ID:ExactMatchMulti', $validGroups);
-                return (bool)$groupMembers->find('ID', $member->ID);
-            }
+        if (!$this->Groups()->exists()) {
+            return true;            
         }
 
-        return true;
+        if (empty($member)) {
+            return false;
+        } else {
+            $validGroups = $this->Groups()->column('ID');
+            $groupMembers = Member::get()->filter('Groups.ID:ExactMatchMulti', $validGroups);
+            return (bool)$groupMembers->find('ID', $member->ID);
+        }
     }
 
     /**
@@ -237,17 +278,16 @@ class Discount extends PriceModifier
      */
     public function validateEvents($event)
     {
-        // If events are attached to the discount, check if valid
-        if ($this->TicketPages()->exists()) {
-            if (empty($event)) {
-                return false;
-            } else {
-                $validEvents = $this->TicketPages()->column('ID');
-                return in_array($event->ID, $validEvents);
-            }
+        if (!$this->TicketPages()->exists()) {
+            return true;   
         }
 
-        return true;
+        if (empty($event)) {
+            return false;
+        } else {
+            $validEvents = $this->TicketPages()->column('ID');
+            return in_array($event->ID, $validEvents);
+        }
     }
 
     /**
