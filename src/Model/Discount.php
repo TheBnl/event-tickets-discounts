@@ -119,7 +119,7 @@ class Discount extends PriceModifier
                 ->setSource(Group::get())
                 ->setShouldLazyLoad(true),
             TagField::create('TicketPages', $this->fieldLabel('TicketPages'))
-                ->setSource($this->ticketPages())
+                ->setSource($this->getAllTicketPages())
                 ->setShouldLazyLoad(true),
             CheckboxSetField::create('TicketType', $this->fieldLabel('TicketType'))
                 ->setSource($this->ticketTypes())
@@ -143,7 +143,7 @@ class Discount extends PriceModifier
         return array_map(fn($class) => singleton($class)->i18n_singular_name(), $ticketTypes);
     }
 
-    public function ticketPages()
+    public function getAllTicketPages()
     {
         $ticketPageIds = Ticket::get()->column('TicketPageID');
         $ticketPages = [];
